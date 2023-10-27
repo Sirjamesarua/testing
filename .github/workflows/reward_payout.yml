@@ -10,50 +10,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Get PR creator
-      id: pr_creator
-      run: |
-        echo "pr_creator=$(curl -s -X GET \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/Pinaka-Pani-18/testing/pulls/${{ github.event.pull_request.number }}" | jq -r '.user.login')" >> $GITHUB_ENV
-
-    - name: Initiate Payout
-      if: ${{ github.event.pull_request.merged }} == true
-      env:
-        CHIMONEY_API_KEY: ${{ secrets.CHIMONEY_API_KEY }}
-        USER: ${{ env.pr_creator }}
-        AMOUNT="$2"
-
-        # Create a JSON object with the payout details
-        payout_request='{
-          "chimoneys": [
-            {
-              "email": "$USER",
-              "phone": "+916300760104",
-              "valueInUSD": $AMOUNT,
-              "twitter": "@pinakapani06"
-            }
-          ]
-        }'
-
-        # Make a POST request to the Chimoney API to initiate a payout
-        response=$(curl --request POST \
-          --url https://api-v2-sandbox.chimoney.io/v0.2/payouts/initiate-chimoney \
-          --header "X-API-KEY: $CHIMONEY_API_KEY" \
-          --header 'accept: application/json' \
-          --header 'content-type: application/json' \
-          --data "$payout_request")
-
-        # Log the response for debugging
-        echo "Chimoney API Response: $response"
-
-        # Check if the response contains a payout link
-        payout_link=$(echo "$response" | jq -r '.payout_link')
-
-        if [ -n "$payout_link" ]; then
-          # Respond with the payment link
-          curl -s -X POST \
+      - name: Get PR creator
+        id: pr_creator
+        run: |
+          echo "pr_creator=$(curl -s -X GET \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d "{\"body\":\"Payment link: <${payout_link}>\"}" \
-            "https://api.github.com/repos/Pinaka-Pani-18/testing/issues/${{ github.event.pull_request.number }}/comments"
-        fi
+            "https://api.github.com/repos/Pinaka-Pani-18/testing/pulls/${{ github.event.pull_request.number }}" | jq -r '.user.login')" >> $GITHUB_ENV
+
+      - name: Initiate Payout
+        if: ${{ github.event.pull_request.merged }} == true
+        env:
+          CHIMONEY_API_KEY: ${{ secrets.CHIMONEY_API_KEY }}
+          USER: ${{ env.pr_creator }}
+          AMOUNT="$2"
+
+          # Create a JSON object with the payout details
+          payout_request='{
+            "chimoneys": [
+              {
+                "email": "$USER",
+                "phone": "+916300760104",
+                "valueInUSD": $AMOUNT,
+                "twitter": "@pinakapani06"
+              }
+            ]
+          }'
+
+          # Make a POST request to the Chimoney API to initiate a payout
+          response=$(curl --request POST \
+            --url https://api-v2-sandbox.chimoney.io/v0.2/payouts/initiate-chimoney \
+            --header "X-API-KEY: $CHIMONEY_API_KEY" \
+            --header 'accept: application/json' \
+            --header 'content-type: application/json' \
+            --data "$payout_request")
+
+          # Log the response for debugging
+          echo "Chimoney API Response: $response"
+
+          # Check if the response contains a payout link
+          payout_link=$(echo "$response" | jq -r '.payout_link')
+
+          if [ -n "$payout_link" ]; then
+            # Respond with the payment link
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -d "{\"body\":\"Payment link: <${payout_link}>\"}" \
+              "https://api.github.com/repos/Pinaka-Pani-18/testing/issues/${{ github.event.pull_request.number }}/comments"
+          fi
