@@ -3,17 +3,13 @@ name: Reward Payout
 on:
   pull_request:
     types:
-      - closed
+      - merged
 
 jobs:
   reward_payout:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check if PR is merged
-      id: pr_merged
-      run: echo "merged=true" >> $GITHUB_ENV
-
     - name: Get PR creator
       id: pr_creator
       run: |
@@ -22,7 +18,7 @@ jobs:
           "https://api.github.com/repos/Pinaka-Pani-18/testing/pulls/${{ github.event.pull_request.number }}" | jq -r '.user.login')" >> $GITHUB_ENV
 
     - name: Initiate Payout
-      if: steps.pr_merged.outputs.merged == 'true'
+      if: ${{ github.event.pull_request.merged }} == true
       env:
         CHIMONEY_API_KEY: ${{ secrets.CHIMONEY_API_KEY }}
         USER: ${{ env.pr_creator }}
