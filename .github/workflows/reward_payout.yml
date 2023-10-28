@@ -19,13 +19,13 @@ jobs:
 
       - name: Initiate Payout
         if: ${{ github.event.pull_request.merged }} == true
-        env:
+        run: |
           CHIMONEY_API_KEY: ${{ secrets.CHIMONEY_API_KEY }}
           USER: ${{ env.pr_creator }}
-          AMOUNT="$2"
+          AMOUNT: "2"
 
           # Create a JSON object with the payout details
-          payout_request='{
+          payout_request= '{
             "chimoneys": [
               {
                 "email": "$USER",
